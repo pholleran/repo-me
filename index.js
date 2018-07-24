@@ -35,9 +35,18 @@ module.exports = app => {
       let octokit = await app.auth()
       const { data: installation } = await octokit.apps.findOrgInstallation({org: req.body.params.org})  // if this errors out the app is not installed in the org--need to handle
       octokit = await app.auth(installation.id)
+
+      let job = {
+        org: req.body.params.org,
+        repoName: req.body.params.repoName,
+        template: req.body.params.template,
+        callingMethod: "rpc",
+        res: res,
+        github: octokit
+      }
   
       // call newRepo with parameters
-      let repo = await JSON.stringify(newRepo(req.body.params.org, req.body.params.repoName, req.body.params.template, "rpc", res, octokit))
+      // await newRepo(req.body.params.org, req.body.params.repoName, req.body.params.template, "rpc", res, octokit)
 
     } else {
       // return error msg
@@ -75,10 +84,11 @@ module.exports = app => {
       try {
         // create the new repository (private is NOT default)
         // repo will be empty, but better to have this fail now then wait until after the cloning and parsing
-        const newRepo = await github.repos.createForOrg({name: repoName, org: org, private: true})
+        await github.repos.createForOrg({name: repoName, org: org, private: true})
       }
-      catch(error) {
+      catch(e) {
         // handle cannot create repo error
+        reportError(e.name, e.message, callingMethod)
       }
 
       let tempFolder
@@ -94,61 +104,33 @@ module.exports = app => {
       let tokenResp = await octoclone.apps.createInstallationToken({installation_id: installation.id})
       let token = tokenResp.data.token
 
-      // change to the temp folder
-      shell.cd(tempFolder)
-
-      // clone the repo
-      if (shell.exec('git clone https://x-access-token:' + token + '@github.com/' + org + '/' + template + '.git').code !== 0) {
-        shell.echo('Error: Git clone failed');
+      try {
+        await shell.cd(tempFolder)
+        await shell.exec('git clone https://x-access-token:' + token + '@github.com/' + org + '/' + template + '.git')
+        await shell.exec('rm -rf ' + template + '/' + '.git')
+        await shell.exec('mv ' + template + ' ' + repoName)
+        await shell.cd(repoName)
+        await shell.exec('find ./ -type f -exec sed -i "" -e "s/' + template + '/' + repoName +'/g" {} \\;')
+        await shell.exec('git init')
+        await shell.exec('git add *')
+        await shell.exec('git commit -m "initial commit"')
+        await shell.exec('git remote add origin https://x-access-token:' + token + '@github.com/' + org + '/' + repoName + '.git')
+        await shell.exec('git push -u origin master')
+      } catch(e) {
+        reportError(e.name, e.message, callingMethod)
+      }
+      finally {
+        shell.rm('-rf', tempFolder)
       }
 
-      // delete the .git folder
-      if (shell.exec('rm -rf ' + template + '/' + '.git').code !== 0) {
-        shell.echo('Error: git repo not unintialized');
-      }
-
-      // rename the repo folder
-      if (shell.exec('mv ' + template + ' ' + repoName).code !== 0) {
-        shell.echo('Error: git repo not renamed');
-      }
-
-      // change names in the new directory
-      // will need to recursively look through all files for mentions of template name
-      // and change to new name
-
-      // initialize the new repo
-      shell.cd(repoName)
-      if (shell.exec('git init').code !== 0) {
-        shell.echo('Error: new git repo not initialized');
-      }
-
-      if (shell.exec('git add *').code !== 0) {
-        shell.echo('Error: files not added to staging area');
-      }
-
-      if (shell.exec('git commit -m "initial commit"').code !== 0) {
-        shell.echo('Error: initial commit failed');
-      }
-
-      if (shell.exec('git remote add origin https://x-access-token:' + token + '@github.com/' + org + '/' + repoName + '.git').code !== 0) {
-        shell.echo('Error: git remote not added');
-      }
-
-      if (shell.exec('git push -u origin master').code !== 0) {
-      shell.echo('Error: git not pushed to master');
-      }
-
-      shell.rm('-rf', tempFolder)
     } else {
-      console.error(error)
+      reportError("TemplateConfiguration", template + " is not a configured template in this organization.", callingMethod)
     }
-    
-    // clean up the temp space
   }
 
   // handle errors and report back to user's input method
-  async function reportError(errorText, context = false, res = false) {
-    
+  async function reportError(errorName, errorText, context = false, res = false) {
+    console.log(errorName + ": " + errorText)
     // if user sent request via RPC
     if (res) {
 
@@ -171,8 +153,8 @@ module.exports = app => {
     return verifyUrl
   }
 
-   // get template config
-   const getTemplates = async (org, repo, github) => {
+  // get template config
+  const getTemplates = async (org, repo, github) => {
     let templateData
     let templateYaml
     
@@ -180,8 +162,8 @@ module.exports = app => {
     try {
       templateData = await github.repos.getContent({owner: org, repo: repo, path: '.github/repo-me.yml'})
     } 
-    catch(error) {
-      console.error(error)
+    catch(e) {
+      reportError(e.name, e.text, callingMethod)
     }
 
     let templateBuffer = new Buffer(templateData.data.content, 'base64')
@@ -191,10 +173,9 @@ module.exports = app => {
       templateYaml = yaml.safeLoad(templateBuffer)
       templateYaml = templateYaml.template_repos
     }
-    catch(error) {
-      console.error("error")
+    catch(e) {
+      reportError(e.name, e.message, callingMethod)
     }
-
     return templateYaml
   }
 
@@ -227,5 +208,4 @@ module.exports = app => {
       }
     }
    })
-
 }
