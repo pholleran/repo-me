@@ -1,0 +1,44 @@
+{
+  "name": "repo-me",
+  "version": "1.0.0",
+  "description": "A Probot app for creating a new repository based on an existing template",
+  "author": "Philip Holleran <pholleran@github.com>",
+  "license": "ISC",
+  "repository": "https://github.com/pholleran/repo-me.git",
+  "homepage": "https://github.com/pholleran/repo-me",
+  "bugs": "https://github.com/pholleran/repo-me/issues",
+  "keywords": [
+    "probot",
+    "github",
+    "probot-app"
+  ],
+  "scripts": {
+    "dev": "nodemon --exec \"npm start\"",
+    "start": "probot run ./index.js",
+    "lint": "standard --fix",
+    "test": "jest && standard",
+    "test:watch": "jest --watch --notify --notifyMode=change --coverage"
+  },
+  "dependencies": {
+    "node-rsa": "^1.0.0",
+    "nodegit": "^0.22.2",
+    "os": "^0.1.1",
+    "path": "^0.12.7",
+    "probot": "^7.0.1",
+    "shelljs": "^0.8.2"
+  },
+  "devDependencies": {
+    "jest": "^22.4.3",
+    "nodemon": "^1.18.3",
+    "smee-client": "^1.0.2",
+    "standard": "^10.0.3"
+  },
+  "engines": {
+    "node": ">= 8.3.0"
+  },
+  "standard": {
+    "env": [
+      "jest"
+    ]
+  }
+}
