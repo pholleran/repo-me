@@ -40,13 +40,14 @@ module.exports = app => {
         org: req.body.params.org,
         repoName: req.body.params.repoName,
         template: req.body.params.template,
+        configRepo: "create-repository",
         callingMethod: "rpc",
         res: res,
         github: octokit
       }
   
       // call newRepo with parameters
-      // await newRepo(req.body.params.org, req.body.params.repoName, req.body.params.template, "rpc", res, octokit)
+      await newRepo(job)
 
     } else {
       // return error msg
@@ -76,23 +77,23 @@ module.exports = app => {
   })
 
   // function to create new repo
-  async function newRepo (org, repoName, template, callingMethod, res = false, github) {
+  // async function newRepo (org, repoName, template, callingMethod, res = false, github) {
+  async function newRepo (job) {
     
-    let templates = await getTemplates(org, 'create-repository', github)
-    if (templates.includes(template)) {
+    job.templates = await getTemplates(job)
+    if (job.templates.includes(job.template)) {
 
       try {
         // create the new repository (private is NOT default)
         // repo will be empty, but better to have this fail now then wait until after the cloning and parsing
-        await github.repos.createForOrg({name: repoName, org: org, private: true})
+        await job.github.repos.createForOrg({name: job.repoName, org: job.org, private: true})
       }
-      catch(e) {
-        // handle cannot create repo error
-        reportError(e.name, e.message, callingMethod)
+      catch (e) {
+        reportError(e, job)
       }
 
       let tempFolder
-      let tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'tmp-'), (err, folder) => {
+      await fs.mkdtemp(path.join(os.tmpdir(), 'tmp-'), (err, folder) => {
         if (err) throw err;
         tempFolder = folder
       })
@@ -100,39 +101,51 @@ module.exports = app => {
       // using the instance of octokit passed to this function to geberate ab installation token creates PEM errors
       // need to create and auth a unique one to handle the clone
       let octoclone = await app.auth()
-      const { data: installation } = await octoclone.apps.findOrgInstallation({org: org})  // if this errors out the app is not installed in the org--need to handle
+      const { data: installation } = await octoclone.apps.findOrgInstallation({org: job.org})  // if this errors out the app is not installed in the org--need to handle
       let tokenResp = await octoclone.apps.createInstallationToken({installation_id: installation.id})
       let token = tokenResp.data.token
 
       try {
         await shell.cd(tempFolder)
-        await shell.exec('git clone https://x-access-token:' + token + '@github.com/' + org + '/' + template + '.git')
-        await shell.exec('rm -rf ' + template + '/' + '.git')
-        await shell.exec('mv ' + template + ' ' + repoName)
-        await shell.cd(repoName)
-        await shell.exec('find ./ -type f -exec sed -i "" -e "s/' + template + '/' + repoName +'/g" {} \\;')
+        if (await shell.exec('git clone https://x-access-token:' + token + '@github.com/' + job.org + '/' + job.template + '.git').code != 0) {
+          // mwah
+        }
+        if (await shell.exec('rm -rf ' + job.template + '/' + '.git').code !=0) {
+
+        }
+        if (await shell.exec('mv ' + job.template + ' ' + job.repoName).code != 0) {
+
+        }
+        await shell.cd(job.repoName)
+        await shell.exec('find ./ -type f -exec sed -i "" -e "s/' + job.template + '/' + job.repoName +'/g" {} \\;')
         await shell.exec('git init')
         await shell.exec('git add *')
         await shell.exec('git commit -m "initial commit"')
-        await shell.exec('git remote add origin https://x-access-token:' + token + '@github.com/' + org + '/' + repoName + '.git')
+        await shell.exec('git remote add origin https://x-access-token:' + token + '@github.com/' + job.org + '/' + job.repoName + '.git')
         await shell.exec('git push -u origin master')
-      } catch(e) {
-        reportError(e.name, e.message, callingMethod)
-      }
-      finally {
+      } catch (e) {
+        console.log("caught it")
+        console.log(e.name)
+        reportError(e, job)
+      } finally {
         shell.rm('-rf', tempFolder)
       }
 
     } else {
-      reportError("TemplateConfiguration", template + " is not a configured template in this organization.", callingMethod)
+      let e = {
+        name: "Template Configuration",
+        message: job.template + " is not a configured template in this organization"
+      }
+      reportError(e, job)
     }
   }
 
   // handle errors and report back to user's input method
-  async function reportError(errorName, errorText, context = false, res = false) {
-    console.log(errorName + ": " + errorText)
+  async function reportError(error, job) {
+    console.log("reporing the error")
+    console.log(error.name + ": " + error.message)
     // if user sent request via RPC
-    if (res) {
+    if (job.res) {
 
     } 
     // otherwise report back through GitHub
@@ -154,16 +167,16 @@ module.exports = app => {
   }
 
   // get template config
-  const getTemplates = async (org, repo, github) => {
+  const getTemplates = async (job) => {
     let templateData
     let templateYaml
     
     // check for yaml file in org/create-repository/.github/repo-me.yml
     try {
-      templateData = await github.repos.getContent({owner: org, repo: repo, path: '.github/repo-me.yml'})
+      templateData = await job.github.repos.getContent({owner: job.org, repo: job.configRepo, path: '.github/repo-me.yml'})
     } 
-    catch(e) {
-      reportError(e.name, e.text, callingMethod)
+    catch (e) {
+      reportError(e, job)
     }
 
     let templateBuffer = new Buffer(templateData.data.content, 'base64')
@@ -173,8 +186,8 @@ module.exports = app => {
       templateYaml = yaml.safeLoad(templateBuffer)
       templateYaml = templateYaml.template_repos
     }
-    catch(e) {
-      reportError(e.name, e.message, callingMethod)
+    catch (e) {
+      reportError(e, job)
     }
     return templateYaml
   }
