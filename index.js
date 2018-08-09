@@ -55,7 +55,7 @@ module.exports = app => {
   })
 
   // behavior for issue-driven workflow
-  app.on(['issues.opened', 'issues.edited', 'issues.commented'], async context => {
+  app.on(['issues.opened', 'issues.edited'], async context => {
 
     if (context.payload.repository.name == 'create-repository') {
 
@@ -67,12 +67,22 @@ module.exports = app => {
 
       let issue = await context.github.issues.get(params)
 
-      console.log(issue.data.body)
-
       // parse the body for parameters
+      let nameReg = /((?<=name: )([A-Za-z0-9\-\_]+))/
+      let templateReg = /((?<=template: )([A-Za-z0-9\-\_]+))/
+      let issueBody = issue.data.body
+      let repoName = issueBody.match(nameReg)[0]
+      let template = issueBody.match(templateReg)[0]
 
-      // call newRepo with parameters
-
+      let job = {
+        org: context.payload.organization.login,
+        repoName: repoName,
+        template: template,
+        configRepo: "create-repository",
+        callingMethod: "issue",
+        context: context,
+        github: context.github
+      }
     }
   })
 
