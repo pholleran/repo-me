@@ -87,20 +87,7 @@ module.exports = app => {
       let repo = await newRepo(job);
 
       if (repo.html_url) {
-
-        // determine if there is already a comment on this PR from this app
-        let thread = await context.issue()
-        let issueNumber = thread.number
-        let comments = await context.github.issues.getComments(context.issue({ issueNumber }))
-        let comment = comments.data.find(comment => comment.user.login === process.env.APP_NAME + '[bot]')
-
-        // if there is, edit that one
-        if (comment) {
-          return context.github.issues.editComment(context.issue({body: 'Your new repository is available at: ' + repo.html_url, comment_id: comment.id}))
-        // otherwise create a new one
-        } else {
-          return context.github.issues.createComment(context.issue({body: 'Your new repository is available at: ' + repo.html_url}))
-        }
+        commentOnIssue(context, repo)
       }
     }
   })
@@ -185,6 +172,25 @@ module.exports = app => {
 
     }
   }
+
+  // function to comment on an issue
+  // updates existing comment if present
+  
+  async function commentOnIssue(context, repo) {
+    // determine if there is already a comment on this PR from this app
+    let thread = await context.issue()
+    let issueNumber = thread.number
+    let comments = await context.github.issues.getComments(context.issue({ issueNumber }))
+    let comment = comments.data.find(comment => comment.user.login === process.env.APP_NAME + '[bot]')
+
+    // if there is, edit that one
+    if (comment) {
+      return context.github.issues.editComment(context.issue({body: 'Your new repository is available at: ' + repo.html_url, comment_id: comment.id}))
+    // otherwise create a new one
+    } else {
+      return context.github.issues.createComment(context.issue({body: 'Your new repository is available at: ' + repo.html_url}))
+    }
+ }
 
   // get the data from the request to verify
   const dataToVerify = (req) => {
