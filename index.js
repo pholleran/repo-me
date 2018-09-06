@@ -147,20 +147,6 @@ module.exports = app => {
     }
   }
 
-  // handle errors and report back to user's input method
-  async function reportError(error, job) {
-    console.log("reporing the error")
-    console.log(error.name + ": " + error.message)
-    // if user sent request via RPC
-    if (job.res) {
-
-    } 
-    // otherwise report back through GitHub
-    else {
-
-    }
-  }
-
   // function to comment on an issue
   // updates existing comment if present
   async function commentOnIssue(context, repo) {
@@ -210,6 +196,20 @@ module.exports = app => {
       reportError(e, job)
     }
     return templateYaml
+  }
+
+  // handle errors and report back to user's input method
+  async function reportError(error, job) {
+    console.log("reporing the error")
+    console.log(error.name + ": " + error.message)
+    // if user sent request via RPC
+    if (job.res) {
+
+    } 
+    // otherwise report back through GitHub
+    else {
+
+    }
   }
 
   // verify signature
