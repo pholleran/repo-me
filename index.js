@@ -55,8 +55,8 @@ module.exports = app => {
   })
 
   // behavior for issue-driven workflow
-  app.on(['issues.opened', 'issues.edited', 'issues.commented'], async context => {
-
+  app.on(['issues.opened', 'issues.edited'], async context => {
+    
     if (context.payload.repository.name == 'create-repository') {
 
       let params = {
@@ -67,12 +67,24 @@ module.exports = app => {
 
       let issue = await context.github.issues.get(params)
 
-      console.log(issue.data.body)
-
       // parse the body for parameters
+      let nameReg = /((?<=name: )([A-Za-z0-9\-\_]+))/
+      let templateReg = /((?<=template: )([A-Za-z0-9\-\_]+))/
+      let issueBody = issue.data.body
+      let repoName = issueBody.match(nameReg)[0]
+      let template = issueBody.match(templateReg)[0]
 
-      // call newRepo with parameters
+      let job = {
+        org: context.payload.organization.login,
+        repoName: repoName,
+        template: template,
+        configRepo: "create-repository",
+        callingMethod: "issue",
+        context: context,
+        github: context.github
+      }
 
+      await newRepo(job);
     }
   })
 
@@ -106,9 +118,10 @@ module.exports = app => {
       let token = tokenResp.data.token
 
       try {
+
         await shell.cd(tempFolder)
         if (await shell.exec('git clone https://x-access-token:' + token + '@github.com/' + job.org + '/' + job.template + '.git').code != 0) {
-          // mwah
+        
         }
         if (await shell.exec('rm -rf ' + job.template + '/' + '.git').code !=0) {
 
@@ -132,6 +145,7 @@ module.exports = app => {
       }
 
     } else {
+
       let e = {
         name: "Template Configuration",
         message: job.template + " is not a configured template in this organization"
