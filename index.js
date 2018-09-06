@@ -84,7 +84,24 @@ module.exports = app => {
         github: context.github
       }
 
-      await newRepo(job);
+      let repo = await newRepo(job);
+
+      if (repo.html_url) {
+
+        // determine if there is already a comment on this PR from this app
+        let thread = await context.issue()
+        let issueNumber = thread.number
+        let comments = await context.github.issues.getComments(context.issue({ issueNumber }))
+        let comment = comments.data.find(comment => comment.user.login === process.env.APP_NAME + '[bot]')
+
+        // if there is, edit that one
+        if (comment) {
+          return context.github.issues.editComment(context.issue({body: 'Your new repository is available at: ' + repo.html_url, comment_id: comment.id}))
+        // otherwise create a new one
+        } else {
+          return context.github.issues.createComment(context.issue({body: 'Your new repository is available at: ' + repo.html_url}))
+        }
+      }
     }
   })
 
@@ -95,10 +112,12 @@ module.exports = app => {
     job.templates = await getTemplates(job)
     if (job.templates.includes(job.template)) {
 
+      let newRepository
+
       try {
         // create the new repository (private is NOT default)
         // repo will be empty, but better to have this fail now then wait until after the cloning and parsing
-        await job.github.repos.createForOrg({name: job.repoName, org: job.org, private: true})
+        newRepository = await job.github.repos.createForOrg({name: job.repoName, org: job.org, private: true})
       }
       catch (e) {
         reportError(e, job)
@@ -110,7 +129,7 @@ module.exports = app => {
         tempFolder = folder
       })
       
-      // using the instance of octokit passed to this function to geberate ab installation token creates PEM errors
+      // using the instance of octokit passed to this function to generate an installation token creates PEM errors
       // need to create and auth a unique one to handle the clone
       let octoclone = await app.auth()
       const { data: installation } = await octoclone.apps.findOrgInstallation({org: job.org})  // if this errors out the app is not installed in the org--need to handle
@@ -137,11 +156,10 @@ module.exports = app => {
         await shell.exec('git remote add origin https://x-access-token:' + token + '@github.com/' + job.org + '/' + job.repoName + '.git')
         await shell.exec('git push -u origin master')
       } catch (e) {
-        console.log("caught it")
-        console.log(e.name)
         reportError(e, job)
       } finally {
         shell.rm('-rf', tempFolder)
+        return newRepository.data
       }
 
     } else {
