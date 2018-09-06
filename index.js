@@ -28,14 +28,11 @@ module.exports = app => {
 
   // chatops rpc endpoint for new repo
   router.post('/repo', jsonParser, async (req, res) => {
-
     // implement signature verification
     if (signatureIsValid(req)) {
-
       let octokit = await app.auth()
       const { data: installation } = await octokit.apps.findOrgInstallation({org: req.body.params.org})  // if this errors out the app is not installed in the org--need to handle
       octokit = await app.auth(installation.id)
-
       let job = {
         org: req.body.params.org,
         repoName: req.body.params.repoName,
@@ -47,7 +44,11 @@ module.exports = app => {
       }
   
       // call newRepo with parameters
-      await newRepo(job)
+      let repo = await newRepo(job);
+      if (repo.html_url) {
+        res.setHeader('Content-Type', 'application/json');
+        res.send({result: 'Your new repository is available here: ' + repo.html_url})
+      }
 
     } else {
       // return error msg
@@ -58,22 +59,18 @@ module.exports = app => {
   app.on(['issues.opened', 'issues.edited'], async context => {
     
     if (context.payload.repository.name == 'create-repository') {
-
       let params = {
         owner: context.payload.repository.owner.login,
         repo: context.payload.repository.name,
         number: context.payload.issue.number
       }
-
       let issue = await context.github.issues.get(params)
-
       // parse the body for parameters
       let nameReg = /((?<=name: )([A-Za-z0-9\-\_]+))/
       let templateReg = /((?<=template: )([A-Za-z0-9\-\_]+))/
       let issueBody = issue.data.body
       let repoName = issueBody.match(nameReg)[0]
       let template = issueBody.match(templateReg)[0]
-
       let job = {
         org: context.payload.organization.login,
         repoName: repoName,
@@ -83,9 +80,7 @@ module.exports = app => {
         context: context,
         github: context.github
       }
-
       let repo = await newRepo(job);
-
       if (repo.html_url) {
         commentOnIssue(context, repo)
       }
@@ -95,12 +90,9 @@ module.exports = app => {
   // function to create new repo
   // async function newRepo (org, repoName, template, callingMethod, res = false, github) {
   async function newRepo (job) {
-    
     job.templates = await getTemplates(job)
     if (job.templates.includes(job.template)) {
-
       let newRepository
-
       try {
         // create the new repository (private is NOT default)
         // repo will be empty, but better to have this fail now then wait until after the cloning and parsing
@@ -109,7 +101,6 @@ module.exports = app => {
       catch (e) {
         reportError(e, job)
       }
-
       let tempFolder
       await fs.mkdtemp(path.join(os.tmpdir(), 'tmp-'), (err, folder) => {
         if (err) throw err;
@@ -124,10 +115,9 @@ module.exports = app => {
       let token = tokenResp.data.token
 
       try {
-
         await shell.cd(tempFolder)
         if (await shell.exec('git clone https://x-access-token:' + token + '@github.com/' + job.org + '/' + job.template + '.git').code != 0) {
-        
+
         }
         if (await shell.exec('rm -rf ' + job.template + '/' + '.git').code !=0) {
 
@@ -148,9 +138,7 @@ module.exports = app => {
         shell.rm('-rf', tempFolder)
         return newRepository.data
       }
-
     } else {
-
       let e = {
         name: "Template Configuration",
         message: job.template + " is not a configured template in this organization"
@@ -175,28 +163,24 @@ module.exports = app => {
 
   // function to comment on an issue
   // updates existing comment if present
-  
   async function commentOnIssue(context, repo) {
     // determine if there is already a comment on this PR from this app
     let thread = await context.issue()
     let issueNumber = thread.number
     let comments = await context.github.issues.getComments(context.issue({ issueNumber }))
     let comment = comments.data.find(comment => comment.user.login === process.env.APP_NAME + '[bot]')
-
     // if there is, edit that one
     if (comment) {
-      return context.github.issues.editComment(context.issue({body: 'Your new repository is available at: ' + repo.html_url, comment_id: comment.id}))
+      return context.github.issues.editComment(context.issue({body: 'Your new repository is available here: ' + repo.html_url, comment_id: comment.id}))
     // otherwise create a new one
     } else {
-      return context.github.issues.createComment(context.issue({body: 'Your new repository is available at: ' + repo.html_url}))
+      return context.github.issues.createComment(context.issue({body: 'Your new repository is available here: ' + repo.html_url}))
     }
  }
 
   // get the data from the request to verify
   const dataToVerify = (req) => {
-
     let verifyUrl = req.protocol + "://" + req.hostname + ":3000" + req.originalUrl + "\\n" + req.get("Chatops-Nonce") + '\\n' + req.get("Chatops-Timestamp") + '\\n'
-
     // handle a post to the listing endpoint
     if (req.method == 'POST') {
       verifyUrl = verifyUrl + req.body
@@ -208,7 +192,6 @@ module.exports = app => {
   const getTemplates = async (job) => {
     let templateData
     let templateYaml
-    
     // check for yaml file in org/create-repository/.github/repo-me.yml
     try {
       templateData = await job.github.repos.getContent({owner: job.org, repo: job.configRepo, path: '.github/repo-me.yml'})
@@ -218,7 +201,6 @@ module.exports = app => {
     }
 
     let templateBuffer = new Buffer(templateData.data.content, 'base64')
-
     // load fie and error if improperly formatted
     try {
       templateYaml = yaml.safeLoad(templateBuffer)
@@ -233,12 +215,10 @@ module.exports = app => {
   // verify signature
   const signatureIsValid = async (req) => {
     let verifyData = dataToVerify(req)    
-
     // get the signature
     let signatureHeader = req.get('Chatops-Signature')
     let sigIndex = signatureHeader.indexOf('signature')
     let signature = signatureHeader.substring(sigIndex + 10)
-
     console.log(publicKey.verify(verifyData, signature, 'utf8', 'base64'));
     return true
   }
