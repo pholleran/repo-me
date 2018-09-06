@@ -1,16 +1,16 @@
 {
   "action": "opened",
   "issue": {
-    "url": "https://api.github.com/repos/pholleran-org/create-repository/issues/3",
+    "url": "https://api.github.com/repos/pholleran-org/create-repository/issues/4",
     "repository_url": "https://api.github.com/repos/pholleran-org/create-repository",
-    "labels_url": "https://api.github.com/repos/pholleran-org/create-repository/issues/3/labels{/name}",
-    "comments_url": "https://api.github.com/repos/pholleran-org/create-repository/issues/3/comments",
-    "events_url": "https://api.github.com/repos/pholleran-org/create-repository/issues/3/events",
-    "html_url": "https://github.com/pholleran-org/create-repository/issues/3",
-    "id": 346427763,
-    "node_id": "MDU6SXNzdWUzNDY0Mjc3NjM=",
-    "number": 3,
-    "title": "asdf",
+    "labels_url": "https://api.github.com/repos/pholleran-org/create-repository/issues/4/labels{/name}",
+    "comments_url": "https://api.github.com/repos/pholleran-org/create-repository/issues/4/comments",
+    "events_url": "https://api.github.com/repos/pholleran-org/create-repository/issues/4/events",
+    "html_url": "https://github.com/pholleran-org/create-repository/issues/4",
+    "id": 357476266,
+    "node_id": "MDU6SXNzdWUzNTc0NzYyNjY=",
+    "number": 4,
+    "title": "Create a repository",
     "user": {
       "login": "pholleran",
       "id": 4007128,
@@ -42,11 +42,11 @@
     ],
     "milestone": null,
     "comments": 0,
-    "created_at": "2018-08-01T02:46:08Z",
-    "updated_at": "2018-08-01T02:46:08Z",
+    "created_at": "2018-09-06T02:47:53Z",
+    "updated_at": "2018-09-06T02:47:53Z",
     "closed_at": null,
     "author_association": "CONTRIBUTOR",
-    "body": "# Some text\r\nname: my-new-repo\r\ntemplate: my-template\r\nsome other text"
+    "body": "# Some text\r\nname: my-new-repo\r\ntemplate: foo-bar\r\nsome other text"
   },
   "repository": {
     "id": 141218408,
@@ -134,10 +134,10 @@
     "forks_count": 0,
     "mirror_url": null,
     "archived": false,
-    "open_issues_count": 3,
+    "open_issues_count": 4,
     "license": null,
     "forks": 0,
-    "open_issues": 3,
+    "open_issues": 4,
     "watchers": 0,
     "default_branch": "master"
   },
