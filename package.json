@@ -20,7 +20,6 @@
     "test:watch": "jest --watch --notify --notifyMode=change --coverage"
   },
   "dependencies": {
-    "node-rsa": "^1.0.0",
     "nodegit": "^0.22.2",
     "os": "^0.1.1",
     "path": "^0.12.7",
