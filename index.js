@@ -7,10 +7,7 @@ module.exports = app => {
   var jsonParser = bodyParser.json()
   const shell = require('shelljs')
   const yaml = require('js-yaml')
-
-  const NodeRSA = require('node-rsa')
-  const keyData = fs.readFileSync('hubot-test.pub', 'utf8')
-  const publicKey = new NodeRSA(keyData, 'pkcs1-public-pem')
+  const rpc = require('./lib/rpc') 
 
   const router = app.route('/repo-me')
   router.use(require('express').static('public'))
@@ -28,6 +25,7 @@ module.exports = app => {
 
   // chatops rpc endpoint for new repo
   router.post('/repo', jsonParser, async (req, res) => {
+    console.log(req.body)
     // implement signature verification
     if (signatureIsValid(req)) {
       let octokit = await app.auth()
@@ -166,7 +164,7 @@ module.exports = app => {
 
   // get the data from the request to verify
   const dataToVerify = (req) => {
-    let verifyUrl = req.protocol + "://" + req.hostname + ":3000" + req.originalUrl + "\\n" + req.get("Chatops-Nonce") + '\\n' + req.get("Chatops-Timestamp") + '\\n'
+    let verifyUrl = req.protocol + "://" + req.hostname + ":3000" + req.originalUrl + '\n' + req.get("Chatops-Nonce") + '\n' + req.get("Chatops-Timestamp") + '\n'
     // handle a post to the listing endpoint
     if (req.method == 'POST') {
       verifyUrl = verifyUrl + req.body
@@ -215,12 +213,11 @@ module.exports = app => {
   // verify signature
   const signatureIsValid = async (req) => {
     let verifyData = dataToVerify(req)    
-    // get the signature
     let signatureHeader = req.get('Chatops-Signature')
     let sigIndex = signatureHeader.indexOf('signature')
-    let signature = signatureHeader.substring(sigIndex + 10)
-    console.log(publicKey.verify(verifyData, signature, 'utf8', 'base64'));
-    return true
+    let signature = signatureHeader.substring(sigIndex + 10)  
+    let valid = await rpc.validateSignature(verifyData, signature)
+    return valid
   }
 
   // the JSON structure returned by `/_chatops`
