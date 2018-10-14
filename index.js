@@ -162,16 +162,6 @@ module.exports = app => {
     }
  }
 
-  // get the data from the request to verify
-  const dataToVerify = (req) => {
-    let verifyUrl = req.protocol + "://" + req.hostname + ":3000" + req.originalUrl + '\n' + req.get("Chatops-Nonce") + '\n' + req.get("Chatops-Timestamp") + '\n'
-    // handle a post to the listing endpoint
-    if (req.method == 'POST') {
-      verifyUrl = verifyUrl + req.body
-    }
-    return verifyUrl
-  }
-
   // get template config
   const getTemplates = async (job) => {
     let templateData
@@ -212,11 +202,7 @@ module.exports = app => {
 
   // verify signature
   const signatureIsValid = async (req) => {
-    let verifyData = dataToVerify(req)    
-    let signatureHeader = req.get('Chatops-Signature')
-    let sigIndex = signatureHeader.indexOf('signature')
-    let signature = signatureHeader.substring(sigIndex + 10)  
-    let valid = await rpc.validateSignature(verifyData, signature)
+    let valid = await rpc.validateSignature(req)
     return valid
   }
 
