@@ -97,6 +97,7 @@ module.exports = app => {
     }
  }
 
+
   // the JSON structure returned by `/_chatops`
   const listing = JSON.stringify({
     namespace: "repo",
