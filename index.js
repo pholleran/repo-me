@@ -1,11 +1,7 @@
 module.exports = app => {
 
-  const fs = require('fs')
-  const os = require('os')
-  const path = require('path')
   const bodyParser = require('body-parser')
   var jsonParser = bodyParser.json()
-  const shell = require('shelljs')
   const rpc = require('./lib/rpc') 
   const repoMe = require('./lib/repoMe') 
 
@@ -41,7 +37,7 @@ module.exports = app => {
       }
   
       // call newRepo with parameters
-      let repo = await newRepo(job);
+      let repo = await repoMe.newRepo(job, app);
       if (repo.html_url) {
         res.setHeader('Content-Type', 'application/json');
         res.send({result: 'Your new repository is available here: ' + repo.html_url})
@@ -77,72 +73,12 @@ module.exports = app => {
         context: context,
         github: context.github
       }
-      let repo = await newRepo(job);
+      let repo = await repoMe.newRepo(job);
       if (repo.html_url) {
         commentOnIssue(context, repo)
       }
     }
   })
-
-  // function to create new repo
-  // async function newRepo (org, repoName, template, callingMethod, res = false, github) {
-  async function newRepo (job) {
-    job.templates = await repoMe.templates(job)
-    if (job.templates.includes(job.template)) {
-      let newRepository
-      try {
-        // create the new repository (private is NOT default)
-        // repo will be empty, but better to have this fail now then wait until after the cloning and parsing
-        newRepository = await job.github.repos.createForOrg({name: job.repoName, org: job.org, private: true})
-      }
-      catch (e) {
-        reportError(e, job)
-      }
-      let tempFolder
-      await fs.mkdtemp(path.join(os.tmpdir(), 'tmp-'), (err, folder) => {
-        if (err) throw err;
-        tempFolder = folder
-      })
-      
-      // using the instance of octokit passed to this function to generate an installation token creates PEM errors
-      // need to create and auth a unique one to handle the clone
-      let octoclone = await app.auth()
-      const { data: installation } = await octoclone.apps.findOrgInstallation({org: job.org})  // if this errors out the app is not installed in the org--need to handle
-      let tokenResp = await octoclone.apps.createInstallationToken({installation_id: installation.id})
-      let token = tokenResp.data.token
-
-      try {
-        await shell.cd(tempFolder)
-        if (await shell.exec('git clone https://x-access-token:' + token + '@github.com/' + job.org + '/' + job.template + '.git').code != 0) {
-
-        }
-        if (await shell.exec('rm -rf ' + job.template + '/' + '.git').code !=0) {
-
-        }
-        if (await shell.exec('mv ' + job.template + ' ' + job.repoName).code != 0) {
-
-        }
-        await shell.cd(job.repoName)
-        await shell.exec('find ./ -type f -exec sed -i "" -e "s/' + job.template + '/' + job.repoName +'/g" {} \\;')
-        await shell.exec('git init')
-        await shell.exec('git add *')
-        await shell.exec('git commit -m "initial commit"')
-        await shell.exec('git remote add origin https://x-access-token:' + token + '@github.com/' + job.org + '/' + job.repoName + '.git')
-        await shell.exec('git push -u origin master')
-      } catch (e) {
-        reportError(e, job)
-      } finally {
-        shell.rm('-rf', tempFolder)
-        return newRepository.data
-      }
-    } else {
-      let e = {
-        name: "Template Configuration",
-        message: job.template + " is not a configured template in this organization"
-      }
-      reportError(e, job)
-    }
-  }
 
   // function to comment on an issue
   // updates existing comment if present
