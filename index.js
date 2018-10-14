@@ -6,7 +6,6 @@ module.exports = app => {
   const bodyParser = require('body-parser')
   var jsonParser = bodyParser.json()
   const shell = require('shelljs')
-  const yaml = require('js-yaml')
   const rpc = require('./lib/rpc') 
   const repoMe = require('./lib/repoMe') 
 
