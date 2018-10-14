@@ -8,13 +8,14 @@ module.exports = app => {
   const shell = require('shelljs')
   const yaml = require('js-yaml')
   const rpc = require('./lib/rpc') 
+  const repoMe = require('./lib/repoMe') 
 
   const router = app.route('/repo-me')
   router.use(require('express').static('public'))
   
   // chatops rpc listing route
-  router.get('/', (req, res) => {
-    if (signatureIsValid(req)) {
+  router.get('/', async (req, res) => {
+    if (await rpc.validateSignature(req) == true) {
       res.setHeader('Content-Type', 'application/json');
       res.send(listing)
       return listing
@@ -25,9 +26,8 @@ module.exports = app => {
 
   // chatops rpc endpoint for new repo
   router.post('/repo', jsonParser, async (req, res) => {
-    console.log(req.body)
     // implement signature verification
-    if (signatureIsValid(req)) {
+    if (rpc.validateSignature(req) == true) {
       let octokit = await app.auth()
       const { data: installation } = await octokit.apps.findOrgInstallation({org: req.body.params.org})  // if this errors out the app is not installed in the org--need to handle
       octokit = await app.auth(installation.id)
@@ -88,7 +88,7 @@ module.exports = app => {
   // function to create new repo
   // async function newRepo (org, repoName, template, callingMethod, res = false, github) {
   async function newRepo (job) {
-    job.templates = await getTemplates(job)
+    job.templates = await repoMe.templates(job)
     if (job.templates.includes(job.template)) {
       let newRepository
       try {
@@ -162,30 +162,6 @@ module.exports = app => {
     }
  }
 
-  // get template config
-  const getTemplates = async (job) => {
-    let templateData
-    let templateYaml
-    // check for yaml file in org/create-repository/.github/repo-me.yml
-    try {
-      templateData = await job.github.repos.getContent({owner: job.org, repo: job.configRepo, path: '.github/repo-me.yml'})
-    } 
-    catch (e) {
-      reportError(e, job)
-    }
-
-    let templateBuffer = new Buffer(templateData.data.content, 'base64')
-    // load fie and error if improperly formatted
-    try {
-      templateYaml = yaml.safeLoad(templateBuffer)
-      templateYaml = templateYaml.template_repos
-    }
-    catch (e) {
-      reportError(e, job)
-    }
-    return templateYaml
-  }
-
   // handle errors and report back to user's input method
   async function reportError(error, job) {
     console.log("reporing the error")
@@ -198,12 +174,6 @@ module.exports = app => {
     else {
 
     }
-  }
-
-  // verify signature
-  const signatureIsValid = async (req) => {
-    let valid = await rpc.validateSignature(req)
-    return valid
   }
 
   // the JSON structure returned by `/_chatops`
