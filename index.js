@@ -21,7 +21,7 @@ module.exports = app => {
 
   // chatops rpc endpoint for new repo
   router.post('/repo', jsonParser, async (req, res) => {
-    // implement signature verification
+
     if (rpc.validateSignature(req) == true) {
       let octokit = await app.auth()
       const { data: installation } = await octokit.apps.findOrgInstallation({org: req.body.params.org})  // if this errors out the app is not installed in the org--need to handle
