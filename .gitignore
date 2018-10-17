@@ -1,6 +1,7 @@
 npm-debug.log
 .DS_Store
 node_modules/
+.node-version
 *.pem
 .env
 out
