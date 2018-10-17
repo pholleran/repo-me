@@ -1,3 +1,13 @@
-.env
-.node-version
+npm-debug.log
+.DS_Store
 node_modules/
+.node-version
+*.pem
+.env
+out
+tmp
+package-lock.json
+coverage
+lib/
+.idea
+yarn.lock
