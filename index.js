@@ -38,9 +38,11 @@ module.exports = app => {
   
       // call newRepo with parameters
       let repo = await repoMe.newRepo(job, app);
-      if (repo.html_url) {
+      if (typeof repo !== 'undefined' && repo.url) {
         res.setHeader('Content-Type', 'application/json');
         res.send({result: 'Your new repository is available here: ' + repo.html_url})
+      } else {
+        console.log("newRepo() failed")
       }
 
     } else {
