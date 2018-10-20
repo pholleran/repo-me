@@ -23,7 +23,7 @@
     "nodegit": "^0.22.2",
     "os": "^0.1.1",
     "path": "^0.12.7",
-    "probot": "^7.0.1",
+    "probot": "^7.3.1",
     "shelljs": "^0.8.2"
   },
   "jest": {
@@ -34,7 +34,7 @@
     "jest": "^22.4.3",
     "nodemon": "^1.18.3",
     "smee-client": "^1.0.2",
-    "standard": "^10.0.3"
+    "standard": "^12.0.1"
   },
   "engines": {
     "node": ">= 8.3.0"
