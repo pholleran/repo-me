@@ -1,25 +1,18 @@
 module.exports = app => {
   const bodyParser = require('body-parser')
   var jsonParser = bodyParser.json()
+  const rpcListing = require('./lib/rpcListing')
   const rpc = require('./lib/rpc')
   const repoMe = require('./lib/repoMe')
 
   const router = app.route('/repo-me')
   router.use(require('express').static('public'))
+  router.use(jsonParser)
 
-  // chatops rpc listing route
-  router.get('/', async (req, res) => {
-    if (await rpc.validateSignature(req) === true) {
-      res.setHeader('Content-Type', 'application/json')
-      res.send(listing)
-      return listing
-    } else {
-      res.send('signature not valid')
-    }
-  })
+  router.get('/', rpcListing)
 
   // chatops rpc endpoint for new repo
-  router.post('/repo', jsonParser, async (req, res) => {
+  router.post('/repo', async (req, res) => {
     let job = {
       org: req.body.params.org,
       repoName: req.body.params.repoName,
@@ -74,23 +67,6 @@ module.exports = app => {
       let repo = await repoMe.newRepo(job, app)
       if (typeof repo !== 'undefined' && repo.url) {
         repoMe.commentOnIssue(context, 'Your new repository is available here: ' + repo.html_url, true)
-      }
-    }
-  })
-
-  // the JSON structure returned by `/_chatops`
-  const listing = JSON.stringify({
-    namespace: 'repo',
-    version: 2,
-    error_response: 'More information is perhaps available [in haystack](https://example.com)',
-    methods: {
-      create: {
-        help: 'create <more help soon>',
-        regex: '(?:create)(?: (?<org>\\S+) (?<repoName>\\S+) (?<template>\\S+))?',
-        params: [
-          'org', 'repoName', 'template'
-        ],
-        path: 'repo'
       }
     }
   })
