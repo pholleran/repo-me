@@ -14,18 +14,23 @@
   ],
   "scripts": {
     "dev": "nodemon --exec \"npm start\"",
-    "start": "probot run ./index.js",
+    "start": "probot run ./app.js",
     "lint": "standard --fix",
     "test": "jest --verbose false && standard",
     "test:watch": "jest --watch --notify --notifyMode=change --coverage"
   },
   "dependencies": {
+    "@babel/preset-env": "^7.1.0",
+    "babel-core": "^6.26.3",
+    "babel-jest": "^23.6.0",
+    "babel-preset-env": "^1.7.0",
     "mock-express-request": "^0.2.2",
     "node-mocks-http": "^1.7.3",
     "nodegit": "^0.22.2",
     "os": "^0.1.1",
     "path": "^0.12.7",
     "probot": "^7.3.1",
+    "regenerator-runtime": "^0.12.1",
     "shelljs": "^0.8.2"
   },
   "jest": {
