@@ -1,5 +1,7 @@
 const { Application } = require('probot')
-const tetingApp = require ('..')
+const repoMeMock = require('../app')
+
+const issuesOpenedPayload = require('./fixtures/issues.opened.json')
 
 describe('testing repo creation from issue', async () => {
   let app, github
@@ -17,6 +19,13 @@ describe('testing repo creation from issue', async () => {
         findOrgInstallation: jest.fn().mockReturnValue(Promise.resolve({
           data: {
             id: 1
+          }
+        }))
+      },
+      issues: {
+        get: jest.fn().mockReturnValue(Promise.resolve({
+          data: {
+            body: '# Some text\r\nname: my-new-repo\r\ntemplate: foo-bar\r\nsome other text'
           }
         }))
       },
@@ -42,6 +51,10 @@ describe('testing repo creation from issue', async () => {
   })
 
   test('creates a new repository when passed correct information', async () => {
-
+    await app.receive({
+      name: 'issues.opened',
+      payload: issuesOpenedPayload
+    })
+    expect(github.repos.createForOrg).toHaveBeenCalled()
   })
 })
