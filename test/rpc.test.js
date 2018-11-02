@@ -1,15 +1,21 @@
 // rpc.js
-// const rpc = require('../lib/rpc')
+const rpc = require('../lib/rpc')
+const httpMocks = require('node-mocks-http')
 
-/*
-test('the signature verification works', () => {
-  let verifyData = 'http://localhost:3000/repo-me\nUlw1tnMTvFZ7Vp05xr0rGzqPU+F7RIV/yGrf02CiTxk=\n2018-10-08T21:52:12.782Z\n'
-  let signature = 'gvWa/dsJFl/mKbS4m/18vLLE/Lw9KIeQAacVf52YW8ztFxe0DtSnZCYxUMpuy+yEXjV7MR5s+OseX2N0I2881TaG27uELZep5jDMImnbnsaIhuE1ZBPhL0EsRy3fpGHjbEoJ5j8sMOBucIBXhl5DItw/J0gMUnQpKnJiOZkY3AP3//lCCCcfGhsBmIl34/8lXX/uDFVSz2FzazVkKwgNYx49lAJIRNTORulpbUAsvhu4+k4ASYwQcklYj9l43iJhs6beZQYk6JVW4ds3V98xnEpPPdaTdmg4ipktNruUTbtZ93mv4KW1gXH3ikZN+d8PCoWsCSgNmmIQk6vUoTEVaA=='
-  expect(rpc.validateSignature(verifyData, signature)).toBe(true)
-})
-*/
-
-test('that we can run tests', () => {
-  // your real tests go here
-  expect(1 + 2 + 3).toBe(6)
-})
+describe('RPC signature validation tests', () =>
+  test('it validates the signature', () => {
+    let req = httpMocks.createRequest({
+      method: 'GET',
+      url: 'http://localhost:3000/',
+      headers: {
+        'Chatops-Nonce': 'HKfcBNOxsj4NGlY+xZGizu/DV12yha4P5OjqSmvFFDQ=',
+        'Chatops-Timestamp': '2018-10-22T03:47:50.599Z',
+        'Chatops-Signature': 'Signature keyid=hubotkey,signature=LdAPLsyrdJPCByJphnvZRHesAmy/HdfERsiU/FW5pa9nWChcZofKzXr+z8NDGWyYYeiFMC9ojSZ5ITBZx8sqyQ0tjhCeemlg5ZsjXOEsZ6Mo3Ua32tkERTn72lvymiWOGMgtftPGKGMGHI+jMnDQY1yDIkuQacacWwYjAa7CxYfrx/8YDkOhlAoNUWOmHvc3YvYfrph9x38GjCFv7rFfrBEn4cBz3nS0+eMfgDubWele3q09OOJfGQp8MFfiHXM6YTMTuH8uqbZTGcTKW2SXeaMQJN1gQF03JbkS7nT7UPA3WmwJswzzxtCiLD39cGIIxmiKrsWOPH6q9mZvFCXFkw=='
+      },
+      hostname: 'localhost',
+      originalUrl: '/repo-me',
+      protocol: 'http'
+    })
+    expect(rpc.validateSignature(req)).toBe(true)
+  })
+)
