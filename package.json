@@ -20,6 +20,7 @@
     "test:watch": "jest --watch --notify --notifyMode=change --coverage"
   },
   "dependencies": {
+    "ajv": "^6.5.5",
     "nodegit": "^0.22.2",
     "os": "^0.1.1",
     "path": "^0.12.7",
@@ -40,6 +41,7 @@
     "outputName": "./test-results.xml"
   },
   "devDependencies": {
+    "babel-preset-env": "^1.7.0",
     "jest": "^22.4.3",
     "jest-junit": "^5.2.0",
     "mock-express-request": "^0.2.2",

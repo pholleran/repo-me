@@ -48,19 +48,23 @@ describe('testing the repo route', async () => {
       method: 'POST',
       url: 'http://localhost:3000/',
       headers: {
-        'Chatops-Nonce': 'HKfcBNOxsj4NGlY+xZGizu/DV12yha4P5OjqSmvFFDQ=',
-        'Chatops-Timestamp': '2018-10-22T03:47:50.599Z',
-        'Chatops-Signature': 'Signature keyid=hubotkey,signature=LdAPLsyrdJPCByJphnvZRHesAmy/HdfERsiU/FW5pa9nWChcZofKzXr+z8NDGWyYYeiFMC9ojSZ5ITBZx8sqyQ0tjhCeemlg5ZsjXOEsZ6Mo3Ua32tkERTn72lvymiWOGMgtftPGKGMGHI+jMnDQY1yDIkuQacacWwYjAa7CxYfrx/8YDkOhlAoNUWOmHvc3YvYfrph9x38GjCFv7rFfrBEn4cBz3nS0+eMfgDubWele3q09OOJfGQp8MFfiHXM6YTMTuH8uqbZTGcTKW2SXeaMQJN1gQF03JbkS7nT7UPA3WmwJswzzxtCiLD39cGIIxmiKrsWOPH6q9mZvFCXFkw=='
+        'Chatops-Nonce': '+KwsvHQ0+VPGBtKm8Pjcv+CJoAU+iqxfSmXF59zkK44=',
+        'Chatops-Timestamp': '2018-11-17T05:20:38.308Z',
+        'Chatops-Signature': 'Signature keyid=hubotkey,signature=fxj19A34Qec2yoKgBliELY7u9+Wru1T60JdVsa6gRCTAnHuiUjqVpkesVOq6jch//BRPzG97GOjzzf0Y7J49s55LHnLEZViaioX1taW07PFiZq7HxETld4b43UH7K262LZemYj+ZLm6eSE2eP7j+1fGIMJqm1T0H/p7ixV3FB5Rpd769I3wT5F2+oaYK/XOTUEGHyPIN0mwIWJYKoH/c/m1VHCr07z/PYXc6L8ArAI9Ttd6BYbsqBzxaUjWat3qJA/KxleUf20yAUhkrQAoZlVrINeAhy/rOAxtgo3N3jt9vdPpByI19Ft+QD9K62WDDPewOc4xFph5Y6T8fyXad9A=='
       },
       hostname: 'localhost',
-      originalUrl: '/repo-me',
+      originalUrl: '/repo-me/repo',
       protocol: 'http',
       body: {
-        params: {
-          org: 'pholleran-org',
-          repoName: 'test-repo',
-          template: 'foo-bar'
-        }
+        'user': 'Shell',
+        'mention_slug': '1',
+        'params': {
+          'org': 'pholleran-org',
+          'repoName': 'test-repo',
+          'template': 'foo-bar'
+        },
+        'room_id': '#Shell',
+        'method': 'create'
       }
     })
     expect.assertions(1)

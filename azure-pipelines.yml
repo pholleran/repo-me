@@ -2,6 +2,9 @@ pool:
   vmImage: 'ubuntu-16.04'
 
 steps:
+- task: NodeTool@0 
+  inputs:
+    versionSpec: '8.11.1' 
 - script: npm install
 - script: npm test --ci --reporters=default --reporters=jest-junit
 - task: PublishTestResults@2

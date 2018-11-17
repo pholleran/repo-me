@@ -9,7 +9,6 @@ out
 tmp
 package-lock.json
 coverage
-lib/
 .idea
 yarn.lock
 test-results.xml
