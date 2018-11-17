@@ -1,4 +1,5 @@
 # repo-me
+[![Build Status](https://dev.azure.com/phholler/repo-me/_apis/build/status/repo-me%20pipeline)](https://dev.azure.com/phholler/repo-me/_build/latest?definitionId=1)
 
 repo-me is a GitHub App, built with [Probot](https://github.com/probot/probot), to automate the creation and scaffolding of repositories based on configured templates.
 
