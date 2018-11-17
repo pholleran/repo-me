@@ -6,7 +6,6 @@ steps:
   inputs:
     versionSpec: '8.11.1' 
 - script: npm install
-- script: ls ./lib
 - script: npm test --ci --reporters=default --reporters=jest-junit
 - task: PublishTestResults@2
   inputs:
