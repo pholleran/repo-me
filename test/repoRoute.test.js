@@ -7,6 +7,7 @@ describe('testing the repo route', async () => {
   let app, github
 
   beforeEach(() => {
+    process.env.RPC_PUBLIC_KEY = '-----BEGIN RSA PUBLIC KEY-----\nMIIBCgKCAQEAqMjlXtB/eJ/VozFSGAyIq7ArVLoUIRv0/C3PdwsJQEaTQJhrMvHv\n8fIr8KCz5gscnykQNXMCJXPCmQxgFzTrUYvqKK7MKtP+oH2xEuYc+q4hm1cffiSK\nOCm1neel0JcjHWb8zgL4CpryarqSHV+j2jB91hX2LXiy4mMnyZk4/v1mEUrUSeL9\nSE4oNMwwQZbZ9RP5LFm6wgzvGPCwUjlHic+/4yYBQRxMDM5JJLsmB65Vd0xQf7PP\n6xWkFrjOW/wjOsxGj8vM5BUfFUNFNjyHgcHnnlS2AYTmuoLaIu0N6P4yUtCKJlhH\nzQ/Ub+GIaVcP8uwPnTgXZ3lJP7nQbI5WgQIDAQAB\n-----END RSA PUBLIC KEY-----\n'
     app = new Application()
     app.load(repoMeMock)
     github = {
