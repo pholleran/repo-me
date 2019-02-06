@@ -9,7 +9,6 @@ describe('RPC signature validation tests', () =>
   ),
 
 test('it validates the signature', () => {
-  console.log(process.env['RPC_PUBLIC_KEY'])
   let req = httpMocks.createRequest({
     method: 'GET',
     url: 'http://localhost:3000/',

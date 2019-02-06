@@ -1,4 +1,5 @@
 # repo-me
+
 [![Build Status](https://dev.azure.com/phholler/repo-me/_apis/build/status/repo-me%20pipeline)](https://dev.azure.com/phholler/repo-me/_build/latest?definitionId=1)
 
 repo-me is a GitHub App, built with [Probot](https://github.com/probot/probot), to automate the creation and scaffolding of repositories based on configured templates.
@@ -11,31 +12,29 @@ For organizations utilizing [chatOps RPC](https://github.com/bhuga/hubot-chatops
 
 ## Setup
 
-Setting up repo-me requires:
+Setting up repo-me requires four steps:
 
-1. Installation and deployment of repo-me
-2. Configuration of the `create-repository` repo
-3. Creation of template repositories
+1. Deploying the repo-me app
+2. Creating and configuring of the `create-repository` repo
+3. Creating template repositories
 4. (optionally) configuring the chatOps RPC endpoint
 
-### 1. Installing and deploying repo-me
+### 1. Deploying the repo-me app
 
-```sh
-# Install dependencies
-npm install
+The probot [deployment documents](https://probot.github.io/docs/deployment/) detail how to deploy to various providers. 
 
-# Run the bot
-npm start
-```
+You'll need to set an environment variable `APP_NAME` with the name of your app - you might want to call it something else. For instance `APP_NAME=sudo-me-a-repo`, in case you like to name things based on [XKCD comics](https://xkcd.com/149/).
+
+If you will be utilizing the chatOps RPC capabilities of repo-me, be sure to set an `RPC_PUBLIC_KEY` environment variable to your RPC server's public key. The probot deployment docs have a good example of this, too.
 
 ### 2. Configuring `create-repository`
 
-repo-me requires used of a repository called `create-repository` in the organization in which the app is installed. This repository is used to:
+`repo-me` requires used of a repository called `create-repository` in the organization in which the app is installed. This repository is used to:
 
-* store the organization's configuration of repo-me
+* store the organization's configuration of `repo-me`
 * create new repositories by opening up issues based on a configured [issue template](https://help.github.com/articles/about-issue-and-pull-request-templates/)
 
-an example configuration of `create-repository` can be cloned from [here]()
+an example configuration of `create-repository` can be cloned from [here](https://github.com/pholleran/create-repository)
 
 ### 3. Creating template repositories
 
@@ -47,15 +46,9 @@ For a repository to be available as a template in repo-me, it must be configured
 
 repo-me will not configure administrative settings of any repos it creates. To automate the setup of repository settings, consider installing [probot-settings](https://github.com/apps/settings) on all repositories in your organization. If your template includes a `settings.yml` file, `probot-settings` will apply the settings upon creation of the new repository.
 
-### 4. Configuring chatOps RPC
+### 4. (optionally) configuring chatOps RPC
 
-
-
-## Contributing
-
-If you have suggestions for how repo-me could be improved, or want to report a bug, open an issue! We'd love all and any contributions.
-
-For more, check out the [Contributing Guide](CONTRIBUTING.md).
+repo-me [exposes an express route](https://probot.github.io/docs/http/) at `https://<host>/repo-me/repo` for use with chatOps RPC. The endpoint exposes a `create` command that takes the target organization name (in which repo-me must be configured), new repo name, and template as parameters. Using [Hubot](https://hubot.github.com/) and [hubot-chatops-rpc](https://github.com/bhuga/hubot-chatops-rpc/projects) the command syntax becomes `hubot create <inThisOrg> <aRepoWithThisName> <usingThisTemplate>`.
 
 ## License
 
