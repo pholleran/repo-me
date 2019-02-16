@@ -1,0 +1,62 @@
+{
+  "name": "repo-me",
+  "version": "1.0.0",
+  "description": "A Probot app for creating a new repository based on an existing template",
+  "author": "Philip Holleran <pholleran@github.com>",
+  "license": "ISC",
+  "repository": "https://github.com/pholleran/repo-me.git",
+  "homepage": "https://github.com/pholleran/repo-me",
+  "bugs": "https://github.com/pholleran/repo-me/issues",
+  "keywords": [
+    "probot",
+    "github",
+    "probot-app"
+  ],
+  "scripts": {
+    "dev": "nodemon --exec \"npm start\"",
+    "start": "probot run ./app.js",
+    "lint": "standard --fix",
+    "test": "jest --verbose false && standard",
+    "test:watch": "jest --watch --notify --notifyMode=change --coverage"
+  },
+  "dependencies": {
+    "ajv": "^6.6.1",
+    "mock-env": "^0.2.0",
+    "nodegit": "^0.22.2",
+    "os": "^0.1.1",
+    "path": "^0.12.7",
+    "probot": "^7.4.0",
+    "regenerator-runtime": "^0.12.1",
+    "shelljs": "^0.8.3"
+  },
+  "jest": {
+    "verbose": true,
+    "testURL": "http://localhost/",
+    "reporters": [
+      "default",
+      "jest-junit"
+    ]
+  },
+  "jest-junit": {
+    "outputDirectory": ".",
+    "outputName": "./test-results.xml"
+  },
+  "devDependencies": {
+    "babel-preset-env": "^1.7.0",
+    "jest": "^22.4.3",
+    "jest-junit": "^5.2.0",
+    "mock-express-request": "^0.2.2",
+    "node-mocks-http": "^1.7.3",
+    "nodemon": "^1.18.9",
+    "smee-client": "^1.0.2",
+    "standard": "^12.0.1"
+  },
+  "engines": {
+    "node": ">= 8.3.0"
+  },
+  "standard": {
+    "env": [
+      "jest"
+    ]
+  }
+}
