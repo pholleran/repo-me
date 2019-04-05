@@ -12,6 +12,11 @@ module.exports = app => {
   // chatops rpc endpoint for listing
   router.get('/', rpcListingRoute)
 
+  // Add a new route
+  router.get('/hello-world', (req, res) => {
+    res.send('Hello World')
+  })
+
   // chatops rpc endpoint for new repo
   router.post('/repo', async (req, res) => {
     repoRoute(req, res, app)

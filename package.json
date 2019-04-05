@@ -22,10 +22,10 @@
   "dependencies": {
     "ajv": "^6.6.1",
     "mock-env": "^0.2.0",
-    "nodegit": "^0.22.2",
+    "nodegit": "^0.23.0-alpha.1",
     "os": "^0.1.1",
     "path": "^0.12.7",
-    "probot": "^7.4.0",
+    "probot": "^9.2.0",
     "regenerator-runtime": "^0.12.1",
     "shelljs": "^0.8.3"
   },
